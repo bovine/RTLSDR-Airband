@@ -396,6 +396,15 @@ void process_outputs(channel_t* channel) {
         if(channel->outputs[k].type == O_ICECAST) {
             icecast_data *icecast = (icecast_data *)(channel->outputs[k].data);
             if(icecast->shout == NULL) continue;
+
+	    // TODO: maybe don't need to send this quite so often.
+	    shout_metadata_t *meta = shout_metadata_new();
+	    char description[50];
+	    sprintf(description, "freq %.3f MHz", channel->frequency / 1000000.0);
+	    shout_metadata_add(meta, "song", description);
+	    shout_set_metadata(icecast->shout, meta);
+	    shout_metadata_free(meta);
+
             int ret = shout_send(icecast->shout, lamebuf, bytes);
             if (ret != SHOUTERR_SUCCESS || shout_queuelen(icecast->shout) > MAX_SHOUT_QUEUELEN) {
                 if (shout_queuelen(icecast->shout) > MAX_SHOUT_QUEUELEN)
